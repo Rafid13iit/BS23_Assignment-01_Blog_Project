@@ -1,3 +1,5 @@
 from django.shortcuts import render
 
-# Create your views here.
+class BlogPostView:
+    def get(self, request):
+        pass
