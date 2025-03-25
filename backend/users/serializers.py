@@ -37,7 +37,25 @@ class UserLoginSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['email', 'password']
         extra_kwargs = {'password': {'write_only': True, 'required': True}}
 
-class UserDashboardSerializer(serializers.ModelSerializer):
+class UserDashboardSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email',]
+
+class UserChangePasswordSerializer(serializers.HyperlinkedModelSerializer):
+    password = serializers.CharField(style={'input_type':'password'}, write_only=True)
+    password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
+    class Meta:
+        model = CustomUser
+        fields = ['password', 'password2']
+        extra_kwargs = {'password': {'write_only': True, 'required': True}}
+
+    def validate (self, attrs):
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+        user = self.context.get('user')
+        if password != password2:
+            raise serializers.ValidationError("Password and Confirm Password doesn't match!!")
+        user.set_password(password)
+        user.save()
+        return attrs

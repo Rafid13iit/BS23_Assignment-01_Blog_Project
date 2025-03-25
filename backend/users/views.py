@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import CustomUser
-from .serializers import UserSerializer, VerifyUserSerializer, UserLoginSerializer, UserDashboardSerializer
+from .serializers import UserSerializer, VerifyUserSerializer, UserLoginSerializer, UserDashboardSerializer, UserChangePasswordSerializer
 from .utils import send_otp_via_email
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -20,7 +20,7 @@ def get_tokens_for_user(user):
     }
 
 
-class RegisterAPI(APIView):
+class RegisterView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         try:
@@ -86,7 +86,7 @@ class VerifyOTP(APIView):
                 "data": {}
             })
 
-class LoginAPI(APIView):
+class LoginView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
         try:
@@ -125,7 +125,7 @@ class LoginAPI(APIView):
                 "data": {}
             })
         
-class UserDashboardAPI(APIView):
+class UserDashboardView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
@@ -143,3 +143,22 @@ class UserDashboardAPI(APIView):
                 "message": "Internal Server Error",
                 "data": {}
             }) 
+        
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = UserChangePasswordSerializer(data = request.data, context = {'user': request.user})
+            serializer.is_valid(raise_exception=True)
+            return Response({
+                "status": "200",
+                "message": "Password changed successfully",
+                "data": {}
+            })
+        except Exception as e:
+            print(e)
+            return Response({
+                "status": "500",
+                "message": "Internal Server Error",
+                "data": {}
+            })
