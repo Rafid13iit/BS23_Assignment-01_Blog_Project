@@ -5,7 +5,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
     class Meta:
         model = CustomUser
-        fields = ['id', 'email', 'username', 'password'] 
+        fields = ['id', 'email', 'username', 'password', 'password2'] 
         extra_kwargs = {'password': {'write_only': True, 'required': True}}
 
     # Validating Password and Confirm Password while Registration
@@ -30,7 +30,14 @@ class VerifyUserSerializer(serializers.HyperlinkedModelSerializer):
     
 
 class UserLoginSerializer(serializers.HyperlinkedModelSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
     class Meta:
         model = CustomUser
         fields = ['email', 'password']
         extra_kwargs = {'password': {'write_only': True, 'required': True}}
+
+class UserDashboardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email',]

@@ -1,6 +1,6 @@
 from django.urls import path
 # from .views import CreateUserView
-from .views import RegisterAPI, VerifyOTP, LoginAPI
+from .views import RegisterAPI, VerifyOTP, LoginAPI, UserDashboardAPI
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path("register/", RegisterAPI.as_view(), name="register"),
     path("verify/", VerifyOTP.as_view(), name="verify"),
     path("login/", LoginAPI.as_view(), name="login"),
-]
+    path("dashboard/", UserDashboardAPI.as_view(), name="user"),
+]  
