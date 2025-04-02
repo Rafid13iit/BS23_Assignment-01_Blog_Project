@@ -106,6 +106,7 @@ class LoginView(APIView):
                     })
 
                 else:
+                    print(user)
                     return Response({
                         "status": "400",
                         "message": "User login failed",

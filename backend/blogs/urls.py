@@ -1,8 +1,8 @@
-from django.urls import path, include
-from blogs.views import *
+from django.urls import path
+from .views import *
 
 urlpatterns = [
-    path('/', GetAllBlogsView.as_view(), name='blogs'),
+    path('', GetAllBlogsView.as_view(), name='blogs'),
     path('create/', CreateBlogView.as_view(), name='create-blog'),
     path('delete/', DeleteBlogView.as_view(), name='delete-blog'),
     path('update/', UpdateBlogView.as_view(), name='update-blog'),
