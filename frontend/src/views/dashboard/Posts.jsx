@@ -41,7 +41,7 @@ function Posts() {
             sortedPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
         } else if (sortValue === "Oldest") {
             sortedPosts.sort((a, b) => new Date(a.date) - new Date(b.date));
-        } else if (sortValue === "Active" || sortValue === "Draft" || sortValue === "Disabled") {
+        } else if (sortValue === "Published" || sortValue === "Draft") {
             sortedPosts = posts.filter((post) => post.status === sortValue);
         } else if (sortValue === "") {
             fetchPosts();

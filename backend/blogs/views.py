@@ -77,3 +77,49 @@ class UpdateBlogView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class CommentView(APIView):
+    renderer_classes = [BlogPostJSONRenderer]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ModelSerializer
+
+    def get(self, request, slug, format=None):
+        blog = BlogPost.objects.get(slug=slug)
+        serializer = self.serializer_class(blog.comments.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, slug, format=None):
+        blog = BlogPost.objects.get(slug=slug)
+        data = request.data.copy()
+        data['blog'] = blog.id
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class ReplyView(APIView):
+    renderer_classes = [BlogPostJSONRenderer]
+    permission_classes = [IsAuthenticated]
+    serializer_class = ModelSerializer
+
+    def get(self, request, slug, comment_id, format=None):
+        blog = BlogPost.objects.get(slug=slug)
+        comment = blog.comments.get(id=comment_id)
+        serializer = self.serializer_class(comment.replies.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, slug, comment_id, format=None):
+        blog = BlogPost.objects.get(slug=slug)
+        comment = blog.comments.get(id=comment_id)
+        data = request.data.copy()
+        data['comment'] = comment.id
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        

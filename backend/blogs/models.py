@@ -12,7 +12,21 @@ class BlogPost(models.Model):
     status = models.CharField(max_length=20, choices=[
         ('draft', 'Draft'),
         ('published', 'Published')
-    ])
+    ], default='draft')
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.title
+    
+    def comments(self):
+        return Comment.objects.filter(post=self).order_by('-created_at')
+    
+class Comment(models.Model):
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    reply = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+
+    def __str__(self):
+        return f"{self.post.title} - {self.name}"
