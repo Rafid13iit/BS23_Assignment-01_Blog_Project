@@ -141,7 +141,7 @@ const Comments = ({ blogId }) => {
     };
     
     fetchComments();
-  }, [blogId, getComments]);
+  }, []);
 
   const onSubmit = async (data) => {
     const result = await addComment(blogId, data.comment);

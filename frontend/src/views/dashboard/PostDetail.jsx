@@ -18,7 +18,7 @@ const PostDetail = () => {
       setBlog(result);
     };
     fetchBlog();
-  }, [getBlogBySlug, slug]);
+  }, []);
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this blog post?')) {

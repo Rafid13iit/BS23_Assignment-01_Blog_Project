@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.serializers import ModelSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils.text import slugify
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class GetAllBlogsView(APIView):
@@ -92,7 +94,7 @@ class UpdateBlogView(APIView):
         
 class CommentView(APIView):
     renderer_classes = [BlogPostJSONRenderer]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = ModelSerializer
 
     def get(self, request, blog_id, format=None):
@@ -120,7 +122,7 @@ class CommentView(APIView):
         
 class ReplyView(APIView):
     renderer_classes = [BlogPostJSONRenderer]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = ModelSerializer
 
     def get(self, request, comment_id, format=None):
@@ -145,6 +147,29 @@ class ReplyView(APIView):
             return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except Comment.DoesNotExist:
             return Response(data={'message': 'Comment does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class ContactFormView(APIView):
+    renderer_classes = [BlogPostJSONRenderer]
+    permission_classes = [AllowAny]
+
+    def post(self, request, format=None):
+        name = request.data.get('name')
+        email = request.data.get('email')
+        subject = request.data.get('subject')
+        message = request.data.get('message')
+
+        full_message = f"From: {name} <{email}>\n\n{message}"
+
+        send_mail(
+            subject,
+            full_message,
+            email,
+            [settings.EMAIL_HOST_USER],  # recipient
+            fail_silently=False,
+        )
+
+        return Response({'message': 'Email sent successfully!'})
         
         
         
