@@ -163,3 +163,12 @@ class ChangePasswordView(APIView):
                 "message": "Internal Server Error",
                 "data": {}
             })
+        
+class IsAuthView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({
+            "success": True,
+            "message": "User is authenticated"
+        })

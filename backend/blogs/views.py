@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework import status
-from blogs.models import BlogPost
-from blogs.serializers import BlogPostSerializer
+from blogs.models import BlogPost, Comment
+from blogs.serializers import BlogPostSerializer, CommentSerializer
 from blogs.renderers import BlogPostJSONRenderer
 from rest_framework.views import APIView
 from rest_framework.serializers import ModelSerializer
@@ -83,43 +83,56 @@ class CommentView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ModelSerializer
 
-    def get(self, request, slug, format=None):
-        blog = BlogPost.objects.get(slug=slug)
-        serializer = self.serializer_class(blog.comments.all(), many=True)
+    def get(self, request, blog_id, format=None):
+        blog = BlogPost.objects.get(pk=blog_id)
+        top_level_comments = blog.comments.filter(reply__isnull=True)
+        serializer = CommentSerializer(top_level_comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    def post(self, request, slug, format=None):
-        blog = BlogPost.objects.get(slug=slug)
-        data = request.data.copy()
-        data['blog'] = blog.id
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, blog_id, format=None):
+        try:
+            blog = BlogPost.objects.get(pk=blog_id)
+            data = {}
+            data['post'] = blog.id
+            data['user'] = request.user.id
+            data['comment'] = request.data.get('comment')
+
+            serializer = CommentSerializer(data=data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(data={'message': 'Comment posted successfully', 'comment': serializer.data}, status=status.HTTP_201_CREATED)
+
+            return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except BlogPost.DoesNotExist:
+            return Response(data={'message': 'Blog does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
 class ReplyView(APIView):
     renderer_classes = [BlogPostJSONRenderer]
     permission_classes = [IsAuthenticated]
     serializer_class = ModelSerializer
 
-    def get(self, request, slug, comment_id, format=None):
-        blog = BlogPost.objects.get(slug=slug)
-        comment = blog.comments.get(id=comment_id)
-        serializer = self.serializer_class(comment.replies.all(), many=True)
+    def get(self, request, comment_id, format=None):
+        comment = Comment.objects.get(pk = comment_id)
+        serializer = CommentSerializer(comment.get_replies(), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def post(self, request, slug, comment_id, format=None):
-        blog = BlogPost.objects.get(slug=slug)
-        comment = blog.comments.get(id=comment_id)
-        data = request.data.copy()
-        data['comment'] = comment.id
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, comment_id, format=None):
+        try:
+            parent_comment = Comment.objects.get(pk=comment_id)
+            data = {}
+            data['user'] = request.user.id
+            data['post'] = parent_comment.post.id  # link to the original post
+            data['reply'] = parent_comment.id       # link to the parent comment
+            data['comment'] = request.data.get('comment')
+
+            serializer = CommentSerializer(data=data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(data={'message': 'Reply posted successfully', 'reply': serializer.data}, status=status.HTTP_201_CREATED)
+
+            return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        except Comment.DoesNotExist:
+            return Response(data={'message': 'Comment does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
         
         

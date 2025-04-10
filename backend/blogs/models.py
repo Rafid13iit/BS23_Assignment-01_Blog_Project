@@ -21,12 +21,14 @@ class BlogPost(models.Model):
         return Comment.objects.filter(post=self).order_by('-created_at')
     
 class Comment(models.Model):
-    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    reply = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='comments', default=None)
+    reply = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
 
     def __str__(self):
-        return f"{self.post.title} - {self.name}"
+        return f'Comment by {self.name} on {self.post.title}'
+    
+    def get_replies(self):
+        return self.replies.all().order_by('-created_at')

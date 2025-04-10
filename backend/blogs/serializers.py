@@ -7,23 +7,15 @@ class BlogPostSerializer(serializers.ModelSerializer):
         # fields = ('id', 'title', 'slug', 'subtitle', 'content', 'published_date', 'status')
         fields = '__all__'  # Including all fields from the model
 
-    def __init__(self, *args, **kwargs):
-        super(BlogPostSerializer, self).__init__(*args, **kwargs)
-        request = self.context.get('request')
-        if request and request.method == 'POST':
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 3
-
 class CommentSerializer(serializers.ModelSerializer):
+    # user_username = serializers.ReadOnlyField(source='user.email')
+
     class Meta:
         model = Comment
         fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super(CommentSerializer, self).__init__(*args, **kwargs)
-        request = self.context.get('request')
-        if request and request.method == 'POST':
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 1
+    def get_replies(self, obj):
+        if obj.reply is None:  # Only for top-level comments
+            replies = Comment.objects.filter(reply=obj)
+            return CommentSerializer(replies, many=True).data
+        return []

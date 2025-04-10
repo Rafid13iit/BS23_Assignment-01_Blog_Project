@@ -1,210 +1,107 @@
-import React, { useEffect, useState } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
-import { Link, useNavigate } from "react-router-dom";
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { useBlog } from '../../hooks/useBlog';
+import LoadingSpinner from '../components/LoadingSpinner';
 
-import apiInstance from "../../utils/axios";
-import useUserData from "../../plugin/useUserData";
-import Toast from "../../plugin/Toast";
-import Swal from "sweetalert2";
+const AddPost = () => {
+  const { createBlog, loading } = useBlog();
+  const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-function AddPost() {
-    const [post, setCreatePost] = useState({ image: "", title: "", description: "", category: parseInt(""), tags: "", status: "" });
-    const [imagePreview, setImagePreview] = useState("");
-    const [categoryList, setCategoryList] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const userId = useUserData()?.user_id;
-    const navigate = useNavigate();
+  const onSubmit = async (data) => {
+    const result = await createBlog({
+      ...data,
+      status: data.status || 'draft'
+    });
+    
+    if (result) {
+      navigate('/dashboard');
+    }
+  };
 
-    const fetchCategory = async () => {
-        const response = await apiInstance.get(`post/category/list/`);
-        setCategoryList(response.data);
-        console.log(response.data);
-    };
-    useEffect(() => {
-        fetchCategory();
-    }, []);
-
-    const handleCreatePostChange = (event) => {
-        setCreatePost({
-            ...post,
-            [event.target.name]: event.target.value,
-        });
-    };
-
-    const handleFileChange = (event) => {
-        const selectedFile = event.target.files[0];
-        const reader = new FileReader();
-
-        setCreatePost({
-            ...post,
-            image: {
-                file: event.target.files[0],
-                preview: reader.result,
-            },
-        });
-        reader.onloadend = () => {
-            setImagePreview(reader.result);
-        };
-        if (selectedFile) {
-            reader.readAsDataURL(selectedFile);
-        }
-    };
-
-    console.log(post.image.file);
-
-    const handleCreatePost = async (e) => {
-        setIsLoading(true);
-        e.preventDefault();
-        if (!post.title || !post.description || !post.image) {
-            Toast("error", "All Fields Are Required To Create A Post");
-            setIsLoading(false);
-            return;
-        }
-
-        console.log(post.category);
-
-        // const jsonData = {
-        //     user_id: userId,
-        //     title: post.title,
-        //     image: post.image.file,
-        //     description: post.description,
-        //     tags: post.tags,
-        //     category: post.category,
-        //     post_status: post.status,
-        // };
-
-        const formdata = new FormData();
-
-        formdata.append("user_id", userId);
-        formdata.append("title", post.title);
-        formdata.append("image", post.image.file);
-        formdata.append("description", post.description);
-        formdata.append("tags", post.tags);
-        formdata.append("category", post.category);
-        formdata.append("post_status", post.status);
-        try {
-            const response = await apiInstance.post("author/dashboard/post-create/", formdata, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-            console.log(response.data);
-            console.log("Post Create");
-            setIsLoading(false);
-            Swal.fire({
-                icon: "success",
-                title: "Post created successfully.",
-            });
-            navigate("/posts/");
-        } catch (error) {
-            console.log(error);
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <>
-            <Header />
-            <section className="pt-5 pb-5">
-                <div className="container">
-                    <div className="row mt-0 mt-md-4">
-                        <div className="col-lg-12 col-md-8 col-12">
-                            <>
-                                <section className="py-4 py-lg-6 bg-primary rounded-3">
-                                    <div className="container">
-                                        <div className="row">
-                                            <div className="offset-lg-1 col-lg-10 col-md-12 col-12">
-                                                <div className="d-lg-flex align-items-center justify-content-between">
-                                                    <div className="mb-4 mb-lg-0">
-                                                        <h1 className="text-white mb-1">Create Blog Post</h1>
-                                                        <p className="mb-0 text-white lead">Use the article builder below to write your article.</p>
-                                                    </div>
-                                                    <div>
-                                                        <Link to="/instructor/posts/" className="btn" style={{ backgroundColor: "white" }}>
-                                                            {" "}
-                                                            <i className="fas fa-arrow-left"></i> Back to Posts
-                                                        </Link>
-                                                        <a href="instructor-posts.html" className="btn btn-dark ms-2">
-                                                            Save Changes <i className="fas fa-check-circle"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </section>
-                                <form onSubmit={handleCreatePost} className="pb-8 mt-5">
-                                    <div className="card mb-3">
-                                        {/* Basic Info Section */}
-                                        <div className="card-header border-bottom px-4 py-3">
-                                            <h4 className="mb-0">Basic Information</h4>
-                                        </div>
-                                        <div className="card-body">
-                                            <label htmlFor="postTHumbnail" className="form-label">
-                                                Preview
-                                            </label>
-                                            <img style={{ width: "100%", height: "330px", objectFit: "cover", borderRadius: "10px" }} className="mb-4" src={imagePreview || "https://www.eclosio.ong/wp-content/uploads/2018/08/default.png"} alt="" />
-                                            <div className="mb-3">
-                                                <label htmlFor="postTHumbnail" className="form-label">
-                                                    Thumbnail
-                                                </label>
-                                                <input onChange={handleFileChange} name="image" id="postTHumbnail" className="form-control" type="file" />
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <label className="form-label">Title</label>
-                                                <input onChange={handleCreatePostChange} name="title" className="form-control" type="text" placeholder="" />
-                                                <small>Write a 60 character post title.</small>
-                                            </div>
-                                            <div className="mb-3">
-                                                <label className="form-label">Posts category</label>
-                                                <select name="category" onChange={handleCreatePostChange} className="form-select">
-                                                    <option value="">-------------</option>
-                                                    {categoryList?.map((c) => (
-                                                        <option value={c?.id}>{c?.title}</option>
-                                                    ))}
-                                                </select>
-                                                <small>Help people find your posts by choosing categories that represent your post.</small>
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <label className="form-label">Post Description</label>
-                                                <textarea onChange={handleCreatePostChange} name="description" className="form-control" id="" cols="30" rows="10"></textarea>
-                                                <small>A brief summary of your posts.</small>
-                                            </div>
-                                            <label className="form-label">Tags</label>
-                                            <input onChange={handleCreatePostChange} name="tags" className="form-control" type="text" placeholder="health, medicine, fitness" />
-
-                                            <div className="mb-3">
-                                                <label className="form-label">Status</label>
-                                                <select onChange={handleCreatePostChange} name="status" className="form-select">
-                                                    <option value="Active">Active</option>
-                                                    <option value="Draft">Draft</option>
-                                                    <option value="Disabled">Disabled</option>
-                                                </select>
-                                                <small>Help people find your posts by choosing categories that represent your post.</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {isLoading === true ? (
-                                        <button className="btn btn-lg btn-secondary w-100 mt-2" disabled>
-                                            Creating Post... <i className="fas fa-spinner fa-spin"></i>
-                                        </button>
-                                    ) : (
-                                        <button className="btn btn-lg btn-success w-100 mt-2" type="submit">
-                                            Create Post <i className="fas fa-check-circle"></i>
-                                        </button>
-                                    )}
-                                </form>
-                            </>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <Footer />
-        </>
-    );
-}
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Create New Blog Post</h1>
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
+            <input
+              type="text"
+              id="title"
+              {...register('title', { required: 'Title is required' })}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+            )}
+          </div>
+          
+          <div>
+            <label htmlFor="subtitle" className="block text-sm font-medium text-gray-700">
+              Subtitle (Optional)
+            </label>
+            <input
+              type="text"
+              id="subtitle"
+              {...register('subtitle')}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+              Content
+            </label>
+            <textarea
+              id="content"
+              rows={12}
+              {...register('content', { required: 'Content is required' })}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+            {errors.content && (
+              <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+            )}
+          </div>
+          
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              id="status"
+              {...register('status')}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {loading ? <LoadingSpinner /> : 'Create Post'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 export default AddPost;

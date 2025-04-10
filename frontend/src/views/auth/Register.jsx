@@ -1,122 +1,107 @@
-import React, { useState } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Link } from 'react-router-dom';
+import { registerSchema } from '../../utils/validationSchemas';
+import { useAuth } from '../../hooks/useAuth';
+import LoadingSpinner from '../components/LoadingSpinner';
 
-import apiInstance from "../../utils/axios";
-import { useAuthStore } from "../../store/auth";
-import { register } from "../../utils/auth";
+const Register = () => {
+  const { register: registerUser, loading } = useAuth();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(registerSchema)
+  });
 
-function Register() {
-    const [bioData, setBioData] = useState({ full_name: "", email: "", password: "", password2: "" });
-    const [isLoading, setIsLoading] = useState(false);
-    const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-    const navigate = useNavigate();
+  const onSubmit = async (data) => {
+    await registerUser(data);
+  };
 
-    const handleBioDataChange = (event) => {
-        setBioData({
-            ...bioData,
-            [event.target.name]: event.target.value,
-        });
-    };
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Create your account
+          </h2>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div className="mb-4">
+              <label htmlFor="username" className="sr-only">Username</label>
+              <input
+                id="username"
+                type="text"
+                {...register('username')}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Username"
+              />
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+              )}
+            </div>
+            <div className="mb-4">
+              <label htmlFor="email" className="sr-only">Email address</label>
+              <input
+                id="email"
+                type="email"
+                {...register('email')}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="mb-4">
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                type="password"
+                {...register('password')}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+              />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              )}
+            </div>
+            <div className="mb-4">
+              <label htmlFor="password2" className="sr-only">Confirm Password</label>
+              <input
+                id="password2"
+                type="password"
+                {...register('password2')}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Confirm Password"
+              />
+              {errors.password2 && (
+                <p className="mt-1 text-sm text-red-600">{errors.password2.message}</p>
+              )}
+            </div>
+          </div>
 
-    const resetForm = () => {
-        setBioData({
-            full_name: "",
-            email: "",
-            password: "",
-            password2: "",
-        });
-    };
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {loading ? <LoadingSpinner /> : 'Sign up'}
+            </button>
+          </div>
+        </form>
 
-    const handleRegister = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        const { error } = await register(bioData.full_name, bioData.email, bioData.password, bioData.password2);
-        if (error) {
-            alert(JSON.stringify(error));
-            resetForm();
-        } else {
-            navigate("/");
-        }
-
-        // Reset isLoading to false when the operation is complete
-        setIsLoading(false);
-    };
-
-    return (
-        <>
-            <Header />
-            <section className="container d-flex flex-column vh-100" style={{ marginTop: "150px" }}>
-                <div className="row align-items-center justify-content-center g-0 h-lg-100 py-8">
-                    <div className="col-lg-5 col-md-8 py-8 py-xl-0">
-                        <div className="card shadow">
-                            <div className="card-body p-6">
-                                <div className="mb-4">
-                                    <h1 className="mb-1 fw-bold">Sign up</h1>
-                                    <span>
-                                        Already have an account?
-                                        <Link to="/login/" className="ms-1">
-                                            Sign In
-                                        </Link>
-                                    </span>
-                                </div>
-                                {/* Form */}
-                                <form className="needs-validation" onSubmit={handleRegister}>
-                                    {/* Username */}
-                                    <div className="mb-3">
-                                        <label htmlFor="email" className="form-label">
-                                            Full Name
-                                        </label>
-                                        <input type="text" onChange={handleBioDataChange} value={bioData.full_name} id="full_name" className="form-control" name="full_name" placeholder="John Doe" required="" />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="email" className="form-label">
-                                            Email Address
-                                        </label>
-                                        <input type="email" onChange={handleBioDataChange} value={bioData.email} id="email" className="form-control" name="email" placeholder="johndoe@gmail.com" required="" />
-                                    </div>
-
-                                    {/* Password */}
-                                    <div className="mb-3">
-                                        <label htmlFor="password" className="form-label">
-                                            Password
-                                        </label>
-                                        <input type="password" onChange={handleBioDataChange} value={bioData.password} id="password" className="form-control" name="password" placeholder="**************" required="" />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="password" className="form-label">
-                                            Confirm Password
-                                        </label>
-                                        <input type="password" onChange={handleBioDataChange} value={bioData.password2} id="password" className="form-control" name="password2" placeholder="**************" required="" />
-                                    </div>
-                                    <div>
-                                        <div className="d-grid">
-                                            <button className="btn btn-primary w-100" type="submit" disabled={isLoading}>
-                                                {isLoading ? (
-                                                    <>
-                                                        <span className="mr-2 ">Processing...</span>
-                                                        <i className="fas fa-spinner fa-spin" />
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="mr-2">Sign Up</span>
-                                                        <i className="fas fa-user-plus" />
-                                                    </>
-                                                )}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <Footer />
-        </>
-    );
-}
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default Register;

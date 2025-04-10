@@ -1,121 +1,203 @@
-import React, { useState, useEffect } from "react";
-import Header from "../partials/Header";
-import Footer from "../partials/Footer";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState, useContext } from 'react';
+import { useForm } from 'react-hook-form';
+import { useBlog } from '../../hooks/useBlog';
+import { AppContext } from '../../context/AppContext';
+import LoadingSpinner from '../components/LoadingSpinner';
 
-import apiInstance from "../../utils/axios";
-// import useUserData from "../../plugin/useUserData";
-// import moment from "moment";
-import Moment from "../../plugin/Moment";
-import Toast from "../../plugin/Toast";
+const CommentItem = ({ comment, onReply }) => {
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replies, setReplies] = useState([]);
+  const [loadingReplies, setLoadingReplies] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+  const { getReplies, addReply, loading } = useBlog();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { isLoggedin } = useContext(AppContext);
 
-function Comments() {
-    const [comments, setComments] = useState([]);
-    const [reply, setReply] = useState("");
+  const fetchReplies = async () => {
+    setLoadingReplies(true);
+    const result = await getReplies(comment.id);
+    setReplies(result);
+    setLoadingReplies(false);
+    setShowReplies(true);
+  };
 
-    const fetchComment = async () => {
-        const response = await apiInstance.get(`author/dashboard/comment-list/`);
-        setComments(response.data);
-    };
+  const toggleReplies = () => {
+    if (!showReplies && replies.length === 0) {
+      fetchReplies();
+    } else {
+      setShowReplies(!showReplies);
+    }
+  };
 
-    useEffect(() => {
-        fetchComment();
-    }, []);
+  const handleReply = async (data) => {
+    const result = await addReply(comment.id, data.comment);
+    if (result) {
+      setShowReplyForm(false);
+      reset();
+      fetchReplies();
+    }
+  };
 
-    const handleSubmitReply = async (commentId) => {
-        try {
-            const response = await apiInstance.post(`author/dashboard/reply-comment/`, {
-                comment_id: commentId,
-                reply: reply,
-            });
-            console.log(response.data);
-            fetchComment();
-            Toast("success", "Reply Sent.", "");
-            setReply("");
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    return (
-        <>
-            <Header />
-            <section className="pt-5 pb-5">
-                <div className="container">
-                    <div className="row mt-0 mt-md-4">
-                        <div className="col-lg-12 col-md-8 col-12">
-                            {/* Card */}
-                            <div className="card mb-4">
-                                {/* Card header */}
-                                <div className="card-header d-lg-flex align-items-center justify-content-between">
-                                    <div className="mb-3 mb-lg-0">
-                                        <h3 className="mb-0">Comments</h3>
-                                        <span>You have full control to manage your own comments.</span>
-                                    </div>
-                                </div>
-                                {/* Card body */}
-                                <div className="card-body">
-                                    {/* List group */}
-                                    <ul className="list-group list-group-flush">
-                                        {/* List group item */}
-                                        {comments?.map((c) => (
-                                            <li className="list-group-item p-4 shadow rounded-3 mb-3">
-                                                <div className="d-flex">
-                                                    <img src="https://as1.ftcdn.net/v2/jpg/03/53/11/00/1000_F_353110097_nbpmfn9iHlxef4EDIhXB1tdTD0lcWhG9.jpg" alt="avatar" className="rounded-circle avatar-lg" style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover" }} />
-                                                    <div className="ms-3 mt-2">
-                                                        <div className="d-flex align-items-center justify-content-between">
-                                                            <div>
-                                                                <h4 className="mb-0">{c.name}</h4>
-                                                                <span>{Moment(c.date)}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="mt-2">
-                                                            <p className="mt-2">
-                                                                <span className="fw-bold me-2">
-                                                                    Comment <i className="fas fa-arrow-right"></i>
-                                                                </span>
-                                                                {c.comment}
-                                                            </p>
-                                                            <p className="mt-2 d-flex">
-                                                                <span className="fw-bold me-2">
-                                                                    Response <i className="fas fa-arrow-right"></i>
-                                                                </span>
-                                                                {c.reply || <p className="text-danger">No Reply</p>}
-                                                            </p>
-                                                            <p>
-                                                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target={`#collapseExample${c.id}`} aria-expanded="false" aria-controls={`collapseExample${c.id}`}>
-                                                                    Send Response
-                                                                </button>
-                                                            </p>
-                                                            <div class="collapse" id={`collapseExample${c.id.toString()}`}>
-                                                                <div class="card card-body">
-                                                                    <div class="mb-3">
-                                                                        <label for="exampleInputEmail1" class="form-label">
-                                                                            Write Response
-                                                                        </label>
-                                                                        <textarea onChange={(e) => setReply(e.target.value)} value={reply} name="" id="" cols="30" className="form-control" rows="4"></textarea>
-                                                                    </div>
-
-                                                                    <button onClick={() => handleSubmitReply(c.id)} type="submit" class="btn btn-primary">
-                                                                        Send Response <i className="fas fa-paper-plane"> </i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  return (
+    <div className="border-l-4 border-gray-200 pl-4 mb-6">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <span className="font-medium">{comment.user?.username || 'Anonymous'}</span>
+          <span className="text-gray-500 text-sm ml-2">
+            {new Date(comment.created_at).toLocaleString()}
+          </span>
+        </div>
+        {isLoggedin && (
+          <button 
+            onClick={() => setShowReplyForm(!showReplyForm)}
+            className="text-sm text-indigo-600 hover:text-indigo-800"
+          >
+            Reply
+          </button>
+        )}
+      </div>
+      
+      <div className="text-gray-700 mb-2">{comment.comment}</div>
+      
+      {replies.length > 0 || comment.get_replies?.length > 0 ? (
+        <button 
+          onClick={toggleReplies} 
+          className="text-sm text-gray-500 hover:text-gray-700 mb-2 flex items-center"
+        >
+          {showReplies ? 'Hide replies' : 'Show replies'} 
+          <span className="ml-1">({replies.length || comment.get_replies?.length})</span>
+        </button>
+      ) : null}
+      
+      {showReplyForm && (
+        <form onSubmit={handleSubmit(handleReply)} className="mb-4">
+          <textarea
+            {...register('comment', { required: 'Reply cannot be empty' })}
+            className="w-full border rounded p-2 text-sm"
+            placeholder="Write a reply..."
+            rows={2}
+          />
+          {errors.comment && (
+            <p className="text-red-500 text-xs mt-1">{errors.comment.message}</p>
+          )}
+          <div className="flex justify-end mt-2">
+            <button
+              type="button"
+              onClick={() => setShowReplyForm(false)}
+              className="mr-2 px-3 py-1 text-xs text-gray-700 hover:text-gray-900"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700"
+            >
+              {loading ? <LoadingSpinner /> : 'Reply'}
+            </button>
+          </div>
+        </form>
+      )}
+      
+      {loadingReplies && (
+        <div className="py-2">
+          <LoadingSpinner />
+        </div>
+      )}
+      
+      {showReplies && replies.length > 0 && (
+        <div className="ml-4 mt-4">
+          {replies.map(reply => (
+            <div key={reply.id} className="border-l-4 border-gray-100 pl-4 mb-4">
+              <div className="flex justify-between items-start mb-1">
+                <div>
+                  <span className="font-medium">{reply.user?.username || 'Anonymous'}</span>
+                  <span className="text-gray-500 text-sm ml-2">
+                    {new Date(reply.created_at).toLocaleString()}
+                  </span>
                 </div>
-            </section>
-            <Footer />
-        </>
-    );
-}
+              </div>
+              <div className="text-gray-700">{reply.comment}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Comments = ({ blogId }) => {
+  const { getComments, addComment, loading } = useBlog();
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(true);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { isLoggedin } = useContext(AppContext);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      const result = await getComments(blogId);
+      setComments(result);
+      setLoadingComments(false);
+    };
+    
+    fetchComments();
+  }, [blogId]);
+
+  const onSubmit = async (data) => {
+    const result = await addComment(blogId, data.comment);
+    if (result) {
+      reset();
+      // Refresh comments
+      const updatedComments = await getComments(blogId);
+      setComments(updatedComments);
+    }
+  };
+
+  return (
+    <div>
+      {isLoggedin && (
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-8">
+          <textarea
+            {...register('comment', { required: 'Comment cannot be empty' })}
+            className="w-full border rounded-md p-3"
+            placeholder="Write a comment..."
+            rows={4}
+          />
+          {errors.comment && (
+            <p className="text-red-500 text-sm mt-1">{errors.comment.message}</p>
+          )}
+          <div className="mt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+            >
+              {loading ? <LoadingSpinner /> : 'Post Comment'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loadingComments ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      ) : comments.length > 0 ? (
+        <div>
+          {comments.map(comment => (
+            <CommentItem 
+              key={comment.id} 
+              comment={comment}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          No comments yet. Be the first to comment!
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default Comments;
