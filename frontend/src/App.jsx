@@ -13,6 +13,9 @@ import Contact from "./views/pages/Contact";
 import AddPost from "./views/dashboard/AddPost";
 import EditPost from "./views/dashboard/EditPost";
 import Profile from "./views/dashboard/Profile";
+import NotFoundPage from "./views/NotFoundPage";
+import ForgotPassword from "./views/auth/ForgotPassword";
+import PostDetail from "./views/dashboard/PostDetail";
 
 function App() {
     return (
@@ -27,9 +30,12 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/verify" element={<EmailVerify />} />
                     <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                    <Route path="/contact" element={<PrivateRoute><Contact /></PrivateRoute>} />
+                    <Route path="/blog/:slug" element={<PostDetail />} />
                     <Route path="/dashboard/add-post" element={<PrivateRoute><AddPost /></PrivateRoute>} />
-                    <Route path="/dashboard/edit-post/:id" element={<PrivateRoute><EditPost /></PrivateRoute>} />
+                    <Route path="/dashboard/edit-post/:slug" element={<PrivateRoute><EditPost /></PrivateRoute>} />
+                    <Route path="/dashboard/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+                    <Route path="*" element={<NotFoundPage />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Routes>
             </MainWrapper>
         </>

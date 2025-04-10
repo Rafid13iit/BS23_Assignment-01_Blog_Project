@@ -3,13 +3,13 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBlog } from '../../hooks/useBlog';
 import { AppContext } from '../../context/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
-import Comments from '../dashboard/Comments';
+import Comments from './Comments';
 
-const Detail = () => {
+const PostDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { getBlogBySlug, deleteBlog, loading } = useBlog();
-  const { userData, isLoggedin } = useContext(AppContext);
+  const { isLoggedin } = useContext(AppContext);
   const [blog, setBlog] = useState(null);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ const Detail = () => {
       setBlog(result);
     };
     fetchBlog();
-  }, [slug]);
+  }, [getBlogBySlug, slug]);
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this blog post?')) {
@@ -80,4 +80,4 @@ const Detail = () => {
   );
 };
 
-export default Detail;
+export default PostDetail;

@@ -13,12 +13,14 @@ class BlogPost(models.Model):
         ('draft', 'Draft'),
         ('published', 'Published')
     ], default='draft')
+    author = models.ForeignKey(
+        'users.CustomUser', on_delete=models.CASCADE, related_name='blogs', default=None, null=True, blank=True)
 
     def __str__(self):
         return self.title
     
-    def comments(self):
-        return Comment.objects.filter(post=self).order_by('-created_at')
+    # def comments(self):
+    #     return Comment.objects.filter(post=self).order_by('-created_at')
     
 class Comment(models.Model):
     comment = models.TextField()

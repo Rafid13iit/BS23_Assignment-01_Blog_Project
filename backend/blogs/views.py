@@ -5,16 +5,25 @@ from blogs.serializers import BlogPostSerializer, CommentSerializer
 from blogs.renderers import BlogPostJSONRenderer
 from rest_framework.views import APIView
 from rest_framework.serializers import ModelSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils.text import slugify
 
 
 class GetAllBlogsView(APIView):
     renderer_classes = [BlogPostJSONRenderer]
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        blogs = BlogPost.objects.filter(status='published')
+        serializer = BlogPostSerializer(blogs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class GetUserBlogsView(APIView):
+    renderer_classes = [BlogPostJSONRenderer]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        blogs = BlogPost.objects.all()
+        blogs = BlogPost.objects.filter(author=request.user)
         serializer = BlogPostSerializer(blogs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -30,6 +39,7 @@ class CreateBlogView(APIView):
             return Response({'error': 'Title is required.'}, status=status.HTTP_400_BAD_REQUEST)
         slug = slugify(title)
         data['slug'] = slug
+        data['author'] = request.user.id
         serializer = BlogPostSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -40,7 +50,7 @@ class CreateBlogView(APIView):
 
 class GetOneBlogView(APIView):
     renderer_classes = [BlogPostJSONRenderer]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, slug, format=None):
         blog = BlogPost.objects.get(slug=slug)
@@ -54,6 +64,8 @@ class DeleteBlogView(APIView):
 
     def post(self, request, format=None):
         blog = BlogPost.objects.get(id=request.data.get('id'))
+        if blog.author != request.user:
+            return Response({'error': 'You do not have permission to delete this blog.'}, status=status.HTTP_403_FORBIDDEN)
         blog.delete()
         return Response({'message': 'Blog deleted successfully'}, status=status.HTTP_204_NO_CONTENT
                         )

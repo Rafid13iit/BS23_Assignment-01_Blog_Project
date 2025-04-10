@@ -14,6 +14,7 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     await registerUser(data);
+    // console.log('Registration data:', data);
   };
 
   return (
@@ -86,7 +87,7 @@ const Register = () => {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {loading ? <LoadingSpinner /> : 'Sign up'}
+              {loading ? <LoadingSpinner /> : 'Register'}
             </button>
           </div>
         </form>
@@ -95,7 +96,7 @@ const Register = () => {
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
             <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign in
+              Log in
             </Link>
           </p>
         </div>

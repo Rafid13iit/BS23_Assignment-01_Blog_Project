@@ -5,13 +5,13 @@ import { AppContext } from '../../context/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Dashboard = () => {
-  const { getAllBlogs, deleteBlog, loading } = useBlog();
+  const { getUserBlogs, deleteBlog, loading } = useBlog();
   const { userData } = useContext(AppContext);
   const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const result = await getAllBlogs();
+      const result = await getUserBlogs();
       setBlogs(result);
     };
     fetchBlogs();

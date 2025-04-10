@@ -4,7 +4,7 @@ import { useBlog } from '../../hooks/useBlog';
 import { AppContext } from '../../context/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-const CommentItem = ({ comment, onReply }) => {
+const CommentItem = ({ comment }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replies, setReplies] = useState([]);
   const [loadingReplies, setLoadingReplies] = useState(false);
@@ -141,7 +141,7 @@ const Comments = ({ blogId }) => {
     };
     
     fetchComments();
-  }, [blogId]);
+  }, [blogId, getComments]);
 
   const onSubmit = async (data) => {
     const result = await addComment(blogId, data.comment);

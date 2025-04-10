@@ -9,6 +9,11 @@ export const useBlog = () => {
     return result.success ? result.data : [];
   };
 
+  const getUserBlogs = async () => {  
+    const result = await api.get('/blogs/user/');
+    return result.success ? result.data : [];
+  };
+
   const getBlogBySlug = async (slug) => {
     const result = await api.get(`/blogs/${slug}/`);
     return result.success ? result.data : null;
@@ -71,6 +76,7 @@ export const useBlog = () => {
 
   return {
     getAllBlogs,
+    getUserBlogs,
     getBlogBySlug,
     createBlog,
     updateBlog,

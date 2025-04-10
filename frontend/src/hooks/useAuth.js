@@ -10,8 +10,11 @@ export const useAuth = () => {
   const { SetIsLoggedin, SetUserData } = useContext(AppContext);
 
   const register = async (userData) => {
+    // console.log('userData', userData);
     const result = await api.post('/users/register/', userData, false);
-    if (result.success) {
+    console.log('result', result);
+    
+    if (result.success && result.data && result.data.token) {
       const { token, data } = result.data;
       localStorage.setItem('access_token', token.access);
       localStorage.setItem('refresh_token', token.refresh);
@@ -50,6 +53,16 @@ export const useAuth = () => {
     return false;
   };
 
+//   const logout = () => {
+//     localStorage.removeItem('access_token');
+//     localStorage.removeItem('refresh_token');
+//     localStorage.removeItem('user_data');
+//     SetIsLoggedin(false);
+//     SetUserData(null);
+//     toast.success('Logout successful!');
+//     navigate('/');
+//   };
+  
   const verifyEmail = async (verificationData) => {
     const result = await api.post('/users/verify/', verificationData, false);
     if (result.success) {

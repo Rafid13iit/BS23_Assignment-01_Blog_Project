@@ -42,6 +42,15 @@ const Header = () => {
                       New Post
                     </NavLink>
                   </li>
+                  <li>
+                    <NavLink to="/dashboard/profile" 
+                      className={({isActive}) => 
+                        isActive ? "font-medium border-b-2 border-white" : "hover:text-blue-200"
+                      }
+                    >
+                      Profile
+                    </NavLink>
+                  </li>
                 </>
               )}
               <li>
@@ -78,7 +87,7 @@ const Header = () => {
             ) : (
               <div className="space-x-2">
                 <Link to="/login" className="bg-white text-blue-600 px-4 py-1 rounded-md hover:bg-blue-100">
-                  Login
+                  Log in
                 </Link>
                 <Link to="/register" className="bg-transparent border border-white text-white px-4 py-1 rounded-md hover:bg-blue-700">
                   Register

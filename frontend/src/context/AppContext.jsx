@@ -13,7 +13,7 @@ export const AppContextProvider = (props) =>{
     const [isLoggedin, SetIsLoggedin] = useState(false)
     const [userData, SetUserData] = useState(null)
 
-    const Logout = () => {
+    const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user_data');
@@ -88,7 +88,7 @@ export const AppContextProvider = (props) =>{
         isLoggedin, SetIsLoggedin,
         userData, SetUserData,
         getAuthState,
-        Logout,
+        logout,
 
     }
     return (
