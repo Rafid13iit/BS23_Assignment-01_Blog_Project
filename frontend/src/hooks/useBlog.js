@@ -4,9 +4,20 @@ import { toast } from 'react-toastify';
 export const useBlog = () => {
   const api = useApi();
 
-  const getAllBlogs = async () => {
-    const result = await api.get('/blogs/');
-    return result.success ? result.data : [];
+  const getAllBlogs = async (page = 1) => {
+    const result = await api.get(`/blogs/?page=${page}`);
+    if (result.success) {
+      return result.data;
+    }
+    // Return a default pagination structure if the request fails
+    return { 
+      results: [], 
+      count: 0, 
+      total_pages: 0,
+      current_page: page,
+      next: null, 
+      previous: null 
+    };
   };
 
   const getUserBlogs = async () => {  

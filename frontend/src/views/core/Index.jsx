@@ -2,38 +2,84 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../../hooks/useBlog';
 import LoadingSpinner from '../components/LoadingSpinner';
-import ReactPaginate from 'react-paginate';
 
 const Index = () => {
   const { getAllBlogs, loading } = useBlog();
   const [blogs, setBlogs] = useState([]);
-  const [pageCount, setPageCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [displayedBlogs, setDisplayedBlogs] = useState([]);
-  const blogsPerPage = 6; // Number of blogs to display per page
+  const [pagination, setPagination] = useState({
+    count: 0,
+    total_pages: 0,
+    current_page: 1,
+    next: null,
+    previous: null
+  });
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const result = await getAllBlogs();
-      setBlogs(result);
+      const result = await getAllBlogs(pagination.current_page);
+      
+      if (result) {
+        setBlogs(result.results || []);
+        setPagination({
+          count: result.count || 0,
+          total_pages: result.total_pages || 0,
+          current_page: result.current_page || 1,
+          next: result.next,
+          previous: result.previous
+        });
+      }
     };
     fetchBlogs();
-  }, []);
+  }, [pagination.current_page]);
 
-  useEffect(() => {
-    // Calculate the total number of pages
-    const totalPages = Math.ceil(blogs.length / blogsPerPage);
-    setPageCount(totalPages);
+  const handlePageChange = (pageNumber) => {
+    setPagination({
+      ...pagination,
+      current_page: pageNumber
+    });
+  };
 
-    // Get current page's blogs
-    const offset = currentPage * blogsPerPage;
-    const currentBlogs = blogs.slice(offset, offset + blogsPerPage);
-    setDisplayedBlogs(currentBlogs);
-  }, [blogs, currentPage]);
+  const handlePreviousPage = () => {
+    if (pagination.previous) {
+      handlePageChange(pagination.current_page - 1);
+    }
+  };
 
-  const handlePageClick = (event) => {
-    setCurrentPage(event.selected);
-    // window.scrollTo(0, 0);
+  const handleNextPage = () => {
+    if (pagination.next) {
+      handlePageChange(pagination.current_page + 1);
+    }
+  };
+
+  // Function to generate page number buttons
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPageButtons = 5;
+    
+    let startPage = Math.max(1, pagination.current_page - Math.floor(maxPageButtons / 2));
+    let endPage = Math.min(pagination.total_pages, startPage + maxPageButtons - 1);
+    
+    if (endPage - startPage + 1 < maxPageButtons) {
+      startPage = Math.max(1, endPage - maxPageButtons + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-1 rounded-md hover:cursor-pointer ${
+            pagination.current_page === i
+              ? "bg-indigo-600 text-white"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    
+    return pageNumbers;
   };
 
   if (loading) {
@@ -49,8 +95,8 @@ const Index = () => {
       <h1 className="text-3xl font-bold mb-8">Latest Blog Posts</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedBlogs.length > 0 ? (
-          displayedBlogs.map((blog) => (
+        {blogs.length > 0 ? (
+          blogs.map((blog) => (
             <div key={blog.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6">
                 <h2 className="text-xl font-semibold mb-2 text-gray-800">
@@ -80,32 +126,42 @@ const Index = () => {
         )}
       </div>
 
-      {pageCount > 1 && (
+      {pagination.total_pages > 1 && (
         <div className="flex justify-center mt-10">
-          <ReactPaginate
-            previousLabel={"← Previous"}
-            nextLabel={"Next →"}
-            breakLabel={"..."}
-            pageCount={pageCount}
-            marginPagesDisplayed={2}
-            pageRangeDisplayed={3}
-            onPageChange={handlePageClick}
-            containerClassName={"flex items-center justify-center space-x-1  hover:cursor-pointer"}
-            pageClassName={"px-3 py-1 rounded-md text-gray-600 hover:bg-gray-100"}
-            previousClassName={"px-3 py-1 rounded-md text-gray-600 hover:bg-gray-100"}
-            nextClassName={"px-3 py-1 rounded-md text-gray-600 hover:bg-gray-100"}
-            breakClassName={"px-3 py-1 text-gray-400"}
-            activeClassName={"bg-indigo-600 text-white hover:bg-indigo-700"}
-            disabledClassName={"text-gray-300 cursor-not-allowed hover:bg-transparent"}
-            forcePage={currentPage}
-          />
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handlePreviousPage}
+              disabled={!pagination.previous}
+              className={`px-3 py-1 rounded-md hover:cursor-pointer ${
+                !pagination.previous
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              ← Previous
+            </button>
+            
+            {renderPageNumbers()}
+            
+            <button
+              onClick={handleNextPage}
+              disabled={!pagination.next}
+              className={`px-3 py-1 rounded-md hover:cursor-pointer ${
+                !pagination.next
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Next →
+            </button>
+          </div>
         </div>
       )}
       
       {/* Page indication */}
-      {blogs.length > 0 && (
+      {pagination.count > 0 && (
         <div className="text-center text-gray-500 mt-4">
-          Showing {currentPage * blogsPerPage + 1} to {Math.min((currentPage + 1) * blogsPerPage, blogs.length)} of {blogs.length} posts
+          Showing {((pagination.current_page - 1) * 6) + 1} to {Math.min(pagination.current_page * 6, pagination.count)} of {pagination.count} posts
         </div>
       )}
     </div>

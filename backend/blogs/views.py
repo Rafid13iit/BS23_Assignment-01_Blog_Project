@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils.text import slugify
 from django.core.mail import send_mail
 from django.conf import settings
+from .pagination import CustomPageNumberPagination
 
 
 class GetAllBlogsView(APIView):
@@ -17,8 +18,10 @@ class GetAllBlogsView(APIView):
 
     def get(self, request, format=None):
         blogs = BlogPost.objects.filter(status='published').order_by('-published_date')
-        serializer = BlogPostSerializer(blogs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # serializer = BlogPostSerializer(blogs, many=True)
+        paginator = CustomPageNumberPagination()
+        return paginator.generate_response(blogs, BlogPostSerializer, request)
+    
     
 class GetUserBlogsView(APIView):
     renderer_classes = [BlogPostJSONRenderer]
