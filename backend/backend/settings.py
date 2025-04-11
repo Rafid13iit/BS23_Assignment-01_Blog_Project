@@ -15,6 +15,8 @@ from datetime import timedelta
 # from decouple import config
 import os
 from dotenv import load_dotenv
+# Celery Beat Schedule
+from celery.schedules import crontab
 
 # Load environment variables from .env file
 load_dotenv()
@@ -55,6 +57,7 @@ INSTALLED_APPS = [
     "corsheaders",
     'users',
     'blogs',
+    'notifications',
 ]
 
 ALLOWED_HOSTS = ["*"]
@@ -66,6 +69,21 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+# Celery Configuration Options
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+CELERY_BEAT_SCHEDULE = {
+    'check-for-new-blogs-every-hour': {
+        'task': 'notifications.tasks.check_for_new_blogs',
+        'schedule': crontab(minute=0),  # Run at the top of every hour
+    },
+}
 
 
 REST_FRAMEWORK = {

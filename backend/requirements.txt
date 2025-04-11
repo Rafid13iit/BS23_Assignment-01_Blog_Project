@@ -6,3 +6,6 @@ django-celery-beat
 django-otp 
 pyotp
 python-dotenv
+celery 
+redis 
+django-celery-beat

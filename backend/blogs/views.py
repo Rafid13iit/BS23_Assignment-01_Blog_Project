@@ -10,6 +10,7 @@ from django.utils.text import slugify
 from django.core.mail import send_mail
 from django.conf import settings
 from .pagination import CustomPageNumberPagination
+from notifications.tasks import send_comment_notification_email, send_new_blog_notification_to_users
 
 
 class GetAllBlogsView(APIView):
@@ -49,7 +50,12 @@ class CreateBlogView(APIView):
         # print(data)
         # print(serializer)
         if serializer.is_valid(raise_exception=True):
-            serializer.save(author=request.user)
+            blog = serializer.save(author=request.user)
+            
+            # If blog is published, send notifications to users
+            if blog.status == 'published':
+                send_new_blog_notification_to_users.delay(blog.id)
+                
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -92,7 +98,12 @@ class UpdateBlogView(APIView):
         data['slug'] = slug
         serializer = BlogPostSerializer(blog, data=data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            updated_blog = serializer.save()
+            
+            # If blog status changed to published, send notifications
+            if 'status' in data and data['status'] == 'published' and blog.status != 'published':
+                send_new_blog_notification_to_users.delay(updated_blog.id)
+                
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -128,7 +139,11 @@ class CommentView(APIView):
 
             serializer = CommentSerializer(data=data, context={'request': request})
             if serializer.is_valid(raise_exception=True):
-                serializer.save()
+                comment = serializer.save()
+                
+                # Send notification email to blog post owner
+                send_comment_notification_email.delay(comment.id)
+                
                 return Response(data={'message': 'Comment posted successfully', 'comment': serializer.data}, status=status.HTTP_201_CREATED)
 
             return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
@@ -163,7 +178,11 @@ class ReplyView(APIView):
 
             serializer = CommentSerializer(data=data, context={'request': request})
             if serializer.is_valid(raise_exception=True):
-                serializer.save()
+                comment = serializer.save()
+                
+                # Send notification to the blog post owner (since this is still a comment on their post)
+                send_comment_notification_email.delay(comment.id)
+                
                 return Response(data={'message': 'Reply posted successfully', 'reply': serializer.data}, status=status.HTTP_201_CREATED)
 
             return Response(data=serializer.data, status=status.HTTP_400_BAD_REQUEST)
@@ -192,6 +211,3 @@ class ContactFormView(APIView):
         )
 
         return Response({'message': 'Email sent successfully!'})
-        
-        
-        
