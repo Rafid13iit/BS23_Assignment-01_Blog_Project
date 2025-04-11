@@ -43,8 +43,10 @@ class CreateBlogView(APIView):
         data['slug'] = slug
         data['author'] = request.user.id
         serializer = BlogPostSerializer(data=data)
+        # print(data)
+        # print(serializer)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -100,7 +102,8 @@ class CommentView(APIView):
     def get(self, request, blog_id, format=None):
         blog = BlogPost.objects.get(pk=blog_id)
         # top_level_comments = blog.comments.filter(reply__isnull=True)
-        comments = blog.comments.all()
+        # Only get top-level comments (where reply is None)
+        comments = blog.comments.filter(reply__isnull=True).order_by('-created_at')
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -117,6 +120,8 @@ class CommentView(APIView):
             data['post'] = blog.id
             # data['user'] = request.user.id
             data['comment'] = request.data.get('comment')
+            # Ensure reply is explicitly set to None for top-level comments
+            data['reply'] = None
 
             serializer = CommentSerializer(data=data, context={'request': request})
             if serializer.is_valid(raise_exception=True):

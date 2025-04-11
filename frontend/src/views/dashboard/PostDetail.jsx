@@ -4,6 +4,8 @@ import { useBlog } from '../../hooks/useBlog';
 import { AppContext } from '../../context/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Comments from './Comments';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { toast } from 'react-toastify';
 
 const PostDetail = () => {
   const { slug } = useParams();
@@ -11,6 +13,13 @@ const PostDetail = () => {
   const { getBlogBySlug, deleteBlog, loading } = useBlog();
   const { isLoggedin, userData } = useContext(AppContext);
   const [blog, setBlog] = useState(null);
+  const [modalConfig, setModalConfig] = useState({
+    show: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    confirmButtonClass: '',
+  });
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -18,15 +27,40 @@ const PostDetail = () => {
       setBlog(result);
     };
     fetchBlog();
-  }, []);
+  }, [slug]);
 
-  const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this blog post?')) {
-      const success = await deleteBlog(blog.id);
-      if (success) {
-        navigate('/dashboard');
-      }
+  const showConfirmation = (config) => {
+    setModalConfig({
+      show: true,
+      ...config
+    });
+  };
+
+  const hideConfirmation = () => {
+    setModalConfig({
+      ...modalConfig,
+      show: false
+    });
+  };
+
+  const handleDeleteClick = () => {
+    showConfirmation({
+      title: "Delete Blog Post",
+      message: `Are you sure you want to delete "${blog.title}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      confirmButtonClass: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
+    });
+  };
+
+  const handleModalConfirm = async () => {
+    const success = await deleteBlog(blog.id);
+    if (success) {
+      toast.success('Blog post deleted successfully');
+      navigate('/dashboard');
+    } else {
+      toast.error('Failed to delete blog post');
     }
+    hideConfirmation();
   };
 
   if (loading || !blog) {
@@ -58,13 +92,13 @@ const PostDetail = () => {
         {isLoggedin && blog.author && userData?.id === blog.author.id &&  (
           <div className="flex space-x-4 mb-10">
             <Link 
-              to={`/dashboard/edit-post/${blog.slug}`}
+              to={`/edit-post/${blog.slug}`}
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
               Edit
             </Link>
             <button 
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
               Delete
@@ -77,6 +111,18 @@ const PostDetail = () => {
           <Comments blogId={blog.id} />
         </div>
       </div>
+
+      {modalConfig.show && (
+        <ConfirmationModal
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmText={modalConfig.confirmText}
+          cancelText="Cancel"
+          confirmButtonClass={modalConfig.confirmButtonClass}
+          onConfirm={handleModalConfirm}
+          onCancel={hideConfirmation}
+        />
+      )}
     </div>
   );
 };

@@ -31,9 +31,9 @@ function App() {
                     <Route path="/verify" element={<EmailVerify />} />
                     <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                     <Route path="/blog/:slug" element={<PostDetail />} />
-                    <Route path="/dashboard/add-post" element={<PrivateRoute><AddPost /></PrivateRoute>} />
-                    <Route path="/dashboard/edit-post/:slug" element={<PrivateRoute><EditPost /></PrivateRoute>} />
-                    <Route path="/dashboard/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+                    <Route path="/add-post" element={<PrivateRoute><AddPost /></PrivateRoute>} />
+                    <Route path="/edit-post/:slug" element={<PrivateRoute><EditPost /></PrivateRoute>} />
+                    <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
                     <Route path="*" element={<NotFoundPage />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Routes>

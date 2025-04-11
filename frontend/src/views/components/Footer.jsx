@@ -10,7 +10,7 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold mb-4">Blog App</h3>
             <p className="text-gray-300">
-              Share your blogs.
+              Share your blogs here.
             </p>
           </div>
           

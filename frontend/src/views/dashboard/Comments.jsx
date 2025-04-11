@@ -16,6 +16,8 @@ const CommentItem = ({ comment }) => {
   const fetchReplies = async () => {
     setLoadingReplies(true);
     const result = await getReplies(comment.id);
+    console.log(result);
+    
     setReplies(result);
     setLoadingReplies(false);
     setShowReplies(true);
@@ -27,7 +29,7 @@ const CommentItem = ({ comment }) => {
     } else {
       setShowReplies(!showReplies);
     }
-  };
+  };showReplies
 
   const handleReply = async (data) => {
     const result = await addReply(comment.id, data.comment);
@@ -141,7 +143,7 @@ const Comments = ({ blogId }) => {
     };
     
     fetchComments();
-  }, []);
+  }, [blogId]);
 
   const onSubmit = async (data) => {
     const result = await addComment(blogId, data.comment);

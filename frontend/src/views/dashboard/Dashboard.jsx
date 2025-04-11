@@ -78,7 +78,7 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Link 
-          to="/dashboard/add-post" 
+          to="/add-post" 
           className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
         >
           Add New Post
@@ -124,7 +124,7 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Link to={`/dashboard/edit-post/${blog.slug}`} className="text-indigo-600 hover:text-indigo-900">
+                        <Link to={`/edit-post/${blog.slug}`} className="text-indigo-600 hover:text-indigo-900">
                           Edit
                         </Link>
                         <button 
@@ -143,7 +143,7 @@ const Dashboard = () => {
         ) : (
           <div className="bg-white p-6 rounded-lg shadow text-center">
             <p className="text-gray-500">You haven't created any blog posts yet.</p>
-            <Link to="/dashboard/add-post" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800 font-medium">
+            <Link to="/add-post" className="mt-4 inline-block text-indigo-600 hover:text-indigo-800 font-medium">
               Create your first post
             </Link>
           </div>
