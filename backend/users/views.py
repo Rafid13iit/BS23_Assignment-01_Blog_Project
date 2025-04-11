@@ -86,45 +86,57 @@ class VerifyOTP(APIView):
                 "data": {}
             })
 
+from rest_framework import status
+
 class LoginView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request):
         try:
             data = request.data
-            serializer = UserLoginSerializer(data = data)
-            if serializer.is_valid():
-                email = serializer.data['email']
-                password = serializer.data['password']
-                user = authenticate(email=email, password=password)
-                if user is not None and user.is_email_verified:
-                    token = get_tokens_for_user(user)
-                    return Response({
-                        "token": token,
-                        "status": "200",
-                        "message": "User login successfully",
-                        "data": {}  
-                    })
+            serializer = UserLoginSerializer(data=data)
 
+            if serializer.is_valid():
+                email = serializer.validated_data['email']
+                password = serializer.validated_data['password']
+                user = authenticate(email=email, password=password)
+
+                if user is not None:
+                    if user.is_email_verified:
+                        token = get_tokens_for_user(user)
+                        return Response({
+                            "token": token,
+                            "status": "200",
+                            "message": "User login successful",
+                            "data": {}
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            "status": "403",
+                            "message": "Please verify your email before logging in.",
+                            "data": {}
+                        }, status=status.HTTP_403_FORBIDDEN)
                 else:
-                    print(user)
                     return Response({
-                        "status": "400",
-                        "message": "User login failed",
+                        "status": "401",
+                        "message": "Invalid email or password.",
                         "data": {}
-                    })
-                
+                    }, status=status.HTTP_401_UNAUTHORIZED)
+
             return Response({
                 "status": "400",
-                "message": "User login failed",
+                "message": "Invalid input",
                 "data": serializer.errors
-            })
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             print(e)
             return Response({
                 "status": "500",
                 "message": "Internal Server Error",
                 "data": {}
-            })
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
 class UserDashboardView(APIView):
     permission_classes = [IsAuthenticated]

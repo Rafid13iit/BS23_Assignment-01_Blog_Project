@@ -15,14 +15,22 @@ class BlogPostSerializer(serializers.ModelSerializer):
         fields = '__all__'  # Including all fields from the model
 
 class CommentSerializer(serializers.ModelSerializer):
-    # user_username = serializers.ReadOnlyField(source='user.email')
+    user = AuthorSerializer(read_only=True)
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ['id', 'comment', 'created_at', 'post', 'user', 'reply', 'replies']
+        # fields = '__all__'
+
 
     def get_replies(self, obj):
         if obj.reply is None:  # Only for top-level comments
             replies = Comment.objects.filter(reply=obj)
             return CommentSerializer(replies, many=True).data
         return []
+    
+    def create(self, validated_data):
+        if 'user' not in validated_data and 'request' in self.context:
+            validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)

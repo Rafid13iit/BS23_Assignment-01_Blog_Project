@@ -99,19 +99,26 @@ class CommentView(APIView):
 
     def get(self, request, blog_id, format=None):
         blog = BlogPost.objects.get(pk=blog_id)
-        top_level_comments = blog.comments.filter(reply__isnull=True)
-        serializer = CommentSerializer(top_level_comments, many=True)
+        # top_level_comments = blog.comments.filter(reply__isnull=True)
+        comments = blog.comments.all()
+        serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, blog_id, format=None):
         try:
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': 'You must be logged in to post a comment'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
             blog = BlogPost.objects.get(pk=blog_id)
             data = {}
             data['post'] = blog.id
-            data['user'] = request.user.id
+            # data['user'] = request.user.id
             data['comment'] = request.data.get('comment')
 
-            serializer = CommentSerializer(data=data)
+            serializer = CommentSerializer(data=data, context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(data={'message': 'Comment posted successfully', 'comment': serializer.data}, status=status.HTTP_201_CREATED)
@@ -126,20 +133,27 @@ class ReplyView(APIView):
     serializer_class = ModelSerializer
 
     def get(self, request, comment_id, format=None):
-        comment = Comment.objects.get(pk = comment_id)
-        serializer = CommentSerializer(comment.get_replies(), many=True)
+        parent_comment = Comment.objects.get(pk = comment_id)
+        replies = parent_comment.get_replies()
+        serializer = CommentSerializer(replies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, comment_id, format=None):
         try:
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': 'You must be logged in to post a reply'}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
             parent_comment = Comment.objects.get(pk=comment_id)
             data = {}
-            data['user'] = request.user.id
+            # data['user'] = request.user.id
             data['post'] = parent_comment.post.id  # link to the original post
             data['reply'] = parent_comment.id       # link to the parent comment
-            data['comment'] = request.data.get('comment')
+            data['comment'] = request.data.get('comment') # 
 
-            serializer = CommentSerializer(data=data)
+            serializer = CommentSerializer(data=data, context={'request': request})
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(data={'message': 'Reply posted successfully', 'reply': serializer.data}, status=status.HTTP_201_CREATED)

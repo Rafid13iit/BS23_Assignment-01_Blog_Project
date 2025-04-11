@@ -26,11 +26,11 @@ class Comment(models.Model):
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
-    user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='comments', default=None)
+    user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='comments', default=None, null=True, blank=True)
     reply = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
 
     def __str__(self):
-        return f'Comment by {self.name} on {self.post.title}'
+        return f'Comment by {self.username} on {self.post.title}'
     
     def get_replies(self):
         return self.replies.all().order_by('-created_at')

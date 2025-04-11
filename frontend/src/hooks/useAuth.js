@@ -31,26 +31,32 @@ export const useAuth = () => {
   };
 
   const login = async (credentials) => {
-    const result = await api.post('/users/login/', credentials, false);
-    if (result.success) {
-      const { token, data } = result.data;
-      localStorage.setItem('user_data', JSON.stringify(data)); //Added extra   
-      localStorage.setItem('access_token', token.access);
-      localStorage.setItem('refresh_token', token.refresh);
-      
-      // Fetch user data
-      const userResult = await api.get('/users/dashboard/');
-      if (userResult.success) {
-        localStorage.setItem('user_data', JSON.stringify(userResult.data.data));
-        SetUserData(userResult.data.data);
+    try {
+      const result = await api.post('/users/login/', credentials, false);
+      if (result.success) {
+        const { token, data } = result.data;
+        localStorage.setItem('user_data', JSON.stringify(data)); //Added extra   
+        localStorage.setItem('access_token', token.access);
+        localStorage.setItem('refresh_token', token.refresh);
+        
+        // Fetch user data
+        const userResult = await api.get('/users/dashboard/');
+        if (userResult.success) {
+          localStorage.setItem('user_data', JSON.stringify(userResult.data.data));
+          SetUserData(userResult.data.data);
+        }
+        
+        SetIsLoggedin(true);
+        toast.success('Login successful!');
+        navigate('/dashboard');
+        return true;
       }
-      
-      SetIsLoggedin(true);
-      toast.success('Login successful!');
-      navigate('/dashboard');
-      return true;
+      return false;
     }
-    return false;
+    catch (error) {
+      console.error(error);
+      return false;
+    }
   };
 
 //   const logout = () => {

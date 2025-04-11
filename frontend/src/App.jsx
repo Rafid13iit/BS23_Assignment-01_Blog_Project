@@ -21,7 +21,7 @@ function App() {
     return (
         <>
             <MainWrapper>
-                <ToastContainer position="bottom-right" autoClose={3000} />
+                <ToastContainer style={{ fontSize: "16px" , fontWeight: "bold" }} autoClose={3000} />
                 <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/about" element={<About />} />
