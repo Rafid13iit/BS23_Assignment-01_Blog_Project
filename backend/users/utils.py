@@ -12,3 +12,4 @@ def send_otp_via_email(email):
     user_obj = CustomUser.objects.get(email=email)
     user_obj.email_otp = otp
     user_obj.save()
+

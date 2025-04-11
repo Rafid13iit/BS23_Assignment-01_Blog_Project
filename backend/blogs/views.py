@@ -16,7 +16,7 @@ class GetAllBlogsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, format=None):
-        blogs = BlogPost.objects.filter(status='published')
+        blogs = BlogPost.objects.filter(status='published').order_by('-published_date')
         serializer = BlogPostSerializer(blogs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
