@@ -35,9 +35,11 @@ const Index = () => {
                 <h2 className="text-xl font-semibold mb-2 text-gray-800">
                   {blog.title}
                 </h2>
-                <p className="text-gray-600 text-sm mb-4">
+                <div className="text-gray-600 text-sm mb-4">
                   Published on {new Date(blog.published_date).toLocaleDateString()}
-                </p>
+                  <span className="mx-2">|</span>
+                  Author: {blog.author? blog.author.username : 'Unknown'}
+                </div>
                 <p className="text-gray-700 mb-4">
                   {blog.subtitle || 'No subtitle'}
                 </p>

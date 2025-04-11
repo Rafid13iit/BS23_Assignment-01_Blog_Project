@@ -9,7 +9,7 @@ const PostDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { getBlogBySlug, deleteBlog, loading } = useBlog();
-  const { isLoggedin } = useContext(AppContext);
+  const { isLoggedin, userData } = useContext(AppContext);
   const [blog, setBlog] = useState(null);
 
   useEffect(() => {
@@ -41,9 +41,10 @@ const PostDetail = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
-        <p className="text-gray-600 mb-8">
-          Published on {new Date(blog.published_date).toLocaleDateString()}
-        </p>
+        <div className="text-gray-600 mb-8">
+          <p>Author: {blog.author ? blog.author.username : 'Unknown'}</p>
+          <p>Published on {new Date(blog.published_date).toLocaleDateString()}</p>
+        </div>
         
         {blog.subtitle && (
           <p className="text-xl text-gray-700 mb-8 italic">{blog.subtitle}</p>
@@ -54,7 +55,7 @@ const PostDetail = () => {
           <div dangerouslySetInnerHTML={{ __html: blog.content }} />
         </div>
 
-        {isLoggedin && (
+        {isLoggedin && blog.author && userData?.id === blog.author.id &&  (
           <div className="flex space-x-4 mb-10">
             <Link 
               to={`/dashboard/edit-post/${blog.slug}`}

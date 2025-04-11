@@ -1,13 +1,22 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useBlog } from '../../hooks/useBlog';
 import { AppContext } from '../../context/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Dashboard = () => {
   const { getUserBlogs, deleteBlog, loading } = useBlog();
   const { userData } = useContext(AppContext);
   const [blogs, setBlogs] = useState([]);
+  const [modalConfig, setModalConfig] = useState({
+    show: false,
+    title: '',
+    message: '',
+    data: null,
+    action: null
+  });
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -17,13 +26,43 @@ const Dashboard = () => {
     fetchBlogs();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this blog post?')) {
-      const success = await deleteBlog(id);
+  const showConfirmation = (config) => {
+    setModalConfig({
+      show: true,
+      ...config
+    });
+  };
+
+  const hideConfirmation = () => {
+    setModalConfig({
+      ...modalConfig,
+      show: false
+    });
+  };
+
+  const handleDeleteClick = (blog) => {
+    showConfirmation({
+      title: "Delete Blog Post",
+      message: `Are you sure you want to delete "${blog.title}"? This action cannot be undone.`,
+      confirmText: "Delete",
+      confirmButtonClass: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
+      data: blog.id,
+      action: 'delete'
+    });
+  };
+
+  const handleModalConfirm = async () => {
+    if (modalConfig.action === 'delete') {
+      const success = await deleteBlog(modalConfig.data);
       if (success) {
-        setBlogs(blogs.filter(blog => blog.id !== id));
+        setBlogs(blogs.filter(blog => blog.id !== modalConfig.data));
+        toast.success('Blog post deleted successfully');
+      } else {
+        toast.error('Failed to delete blog post');
       }
     }
+    
+    hideConfirmation();
   };
 
   if (loading) {
@@ -89,7 +128,7 @@ const Dashboard = () => {
                           Edit
                         </Link>
                         <button 
-                          onClick={() => handleDelete(blog.id)} 
+                          onClick={() => handleDeleteClick(blog)} 
                           className="text-red-600 hover:text-red-900"
                         >
                           Delete
@@ -110,6 +149,18 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {modalConfig.show && (
+        <ConfirmationModal
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmText={modalConfig.confirmText}
+          cancelText={modalConfig.cancelText}
+          confirmButtonClass={modalConfig.confirmButtonClass}
+          onConfirm={handleModalConfirm}
+          onCancel={hideConfirmation}
+        />
+      )}
     </div>
   );
 };

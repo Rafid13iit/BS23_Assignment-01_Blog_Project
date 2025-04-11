@@ -1,10 +1,17 @@
 from rest_framework import serializers
 from .models import BlogPost, Comment
+from users.models import CustomUser
+
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email']
 
 class BlogPostSerializer(serializers.ModelSerializer):
+    author = AuthorSerializer(read_only=True)
     class Meta:
         model = BlogPost
-        # fields = ('id', 'title', 'slug', 'subtitle', 'content', 'published_date', 'status')
+        # fields = ('id', 'title', 'slug', 'subtitle', 'content', 'published_date', 'status', 'author')
         fields = '__all__'  # Including all fields from the model
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -34,13 +34,14 @@ export const AppContextProvider = (props) =>{
         }
 
         try {
-            const response = await axios.get(backendUrl + '/auth/token/verify/',{
+            const response = await axios.get(backendUrl + '/users/token/verify/',{
                 headers: {
                     Authorization:`Bearer ${accessToken}`,
                 },
             });
 
          const userData = {
+            id: response.data.id,
             username: response.data.username,
             email: response.data.email,
         };
@@ -53,7 +54,7 @@ export const AppContextProvider = (props) =>{
             console.error("Error:", error.response?.data || error.message);
             if (error.response && error.response.status === 401) {
                 try {
-                  const refreshResponse = await axios.post(backendUrl + '/auth/token/refresh/', {
+                  const refreshResponse = await axios.post(backendUrl + '/users/token/refresh/', {
                     refresh: refreshToken,
                   });
         
@@ -89,7 +90,6 @@ export const AppContextProvider = (props) =>{
         userData, SetUserData,
         getAuthState,
         logout,
-
     }
     return (
         <AppContext.Provider value={value}>
