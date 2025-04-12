@@ -1,94 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useBlog } from '../../hooks/useBlog';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Pagination from '../components/Pagination';
+import PageInfo from '../components/PageInfo';
+import usePagination from '../../hooks/usePagination';
 
 const Index = () => {
-  const { getAllBlogs, loading } = useBlog();
-  const [blogs, setBlogs] = useState([]);
-  const [pagination, setPagination] = useState({
-    count: 0,
-    total_pages: 0,
-    current_page: 1,
-    next: null,
-    previous: null
-  });
+  const { getAllBlogs } = useBlog();
+  
+  const {
+    items: blogs,
+    pagination,
+    // loading,
+    handlePageChange
+  } = usePagination(getAllBlogs);
 
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      const result = await getAllBlogs(pagination.current_page);
-      
-      if (result) {
-        setBlogs(result.results || []);
-        setPagination({
-          count: result.count || 0,
-          total_pages: result.total_pages || 0,
-          current_page: result.current_page || 1,
-          next: result.next,
-          previous: result.previous
-        });
-      }
-    };
-    fetchBlogs();
-  }, [pagination.current_page]);
-
-  const handlePageChange = (pageNumber) => {
-    setPagination({
-      ...pagination,
-      current_page: pageNumber
-    });
-  };
-
-  const handlePreviousPage = () => {
-    if (pagination.previous) {
-      handlePageChange(pagination.current_page - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pagination.next) {
-      handlePageChange(pagination.current_page + 1);
-    }
-  };
-
-  // Function to generate page number buttons
-  const renderPageNumbers = () => {
-    const pageNumbers = [];
-    const maxPageButtons = 5;
-    
-    let startPage = Math.max(1, pagination.current_page - Math.floor(maxPageButtons / 2));
-    let endPage = Math.min(pagination.total_pages, startPage + maxPageButtons - 1);
-    
-    if (endPage - startPage + 1 < maxPageButtons) {
-      startPage = Math.max(1, endPage - maxPageButtons + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(
-        <button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 rounded-md hover:cursor-pointer ${
-            pagination.current_page === i
-              ? "bg-indigo-600 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          {i}
-        </button>
-      );
-    }
-    
-    return pageNumbers;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex justify-center items-center min-h-screen">
+  //       <LoadingSpinner />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -126,44 +60,12 @@ const Index = () => {
         )}
       </div>
 
-      {pagination.total_pages > 1 && (
-        <div className="flex justify-center mt-10">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handlePreviousPage}
-              disabled={!pagination.previous}
-              className={`px-3 py-1 rounded-md hover:cursor-pointer ${
-                !pagination.previous
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              ← Previous
-            </button>
-            
-            {renderPageNumbers()}
-            
-            <button
-              onClick={handleNextPage}
-              disabled={!pagination.next}
-              className={`px-3 py-1 rounded-md hover:cursor-pointer ${
-                !pagination.next
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Next →
-            </button>
-          </div>
-        </div>
-      )}
+      <Pagination 
+        pagination={pagination} 
+        onPageChange={handlePageChange} 
+      />
       
-      {/* Page indication */}
-      {pagination.count > 0 && (
-        <div className="text-center text-gray-500 mt-4">
-          Showing {((pagination.current_page - 1) * 6) + 1} to {Math.min(pagination.current_page * 6, pagination.count)} of {pagination.count} posts
-        </div>
-      )}
+      <PageInfo pagination={pagination} />
     </div>
   );
 };

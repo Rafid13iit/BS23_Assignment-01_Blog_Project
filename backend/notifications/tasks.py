@@ -7,15 +7,12 @@ from django.template.loader import render_to_string
 
 @shared_task
 def send_comment_notification_email(comment_id):
-    """
-    Send email notification to blog post owner when their post receives a new comment
-    """
     try:
         comment = Comment.objects.select_related('post', 'post__author', 'user').get(id=comment_id)
         blog = comment.post
         author = blog.author
         
-        # Only send notification if the comment author is different from the blog author
+        # Only sends notification if the comment author is different from the blog author
         if not author or (comment.user and comment.user.id == author.id):
             return "No notification needed - author commented on their own post"
         
@@ -51,17 +48,14 @@ Your Blog App Team
 
 @shared_task
 def send_new_blog_notification_to_users(blog_id):
-    """
-    Send notification to all active users when a new blog is published
-    """
     try:
         blog = BlogPost.objects.select_related('author').get(id=blog_id)
         
-        # Only send notifications for published blogs
+        # Only sends notifications for published blogs
         if blog.status != 'published':
             return "Blog is not published, no notifications sent"
         
-        # Get all active, verified users except the blog author
+        # Gets all active, verified users except the blog author
         active_users = CustomUser.objects.filter(
             is_active=True,
             is_email_verified=True
@@ -79,7 +73,7 @@ Title: {blog.title}
 Author: {blog.author.username if blog.author else 'Anonymous'}
 {blog.subtitle if blog.subtitle else ''}
 
-Check it out now on our blog!
+Check it out now on our blog App!
 
 Best regards,
 Your Blog App Team
@@ -101,16 +95,13 @@ Your Blog App Team
 
 @shared_task
 def check_for_new_blogs():
-    """
-    Interval task to check for new blogs and send notifications
-    """
     from django.utils import timezone
     from datetime import timedelta
     
-    # Find blogs published in the last hour
+    # Finds blogs published in the last hour
     one_hour_ago = timezone.now() - timedelta(hours=1)
     
-    # Get recent published blogs
+    # Gets recent published blogs
     new_blogs = BlogPost.objects.filter(
         status='published',
         published_date__gte=one_hour_ago

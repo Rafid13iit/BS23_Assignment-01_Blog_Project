@@ -1,15 +1,26 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useBlog } from '../../hooks/useBlog';
 import { AppContext } from '../../context/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmationModal from '../components/ConfirmationModal';
+import Pagination from '../components/Pagination';
+import PageInfo from '../components/PageInfo';
+import usePagination from '../../hooks/usePagination';
 
 const Dashboard = () => {
-  const { getUserBlogs, deleteBlog, loading } = useBlog();
+  const { getUserBlogs, deleteBlog } = useBlog();
   const { userData } = useContext(AppContext);
-  const [blogs, setBlogs] = useState([]);
+  
+  const {
+    items: blogs,
+    pagination,
+    // loading,
+    handlePageChange,
+    refreshData
+  } = usePagination(getUserBlogs);
+
   const [modalConfig, setModalConfig] = useState({
     show: false,
     title: '',
@@ -17,14 +28,6 @@ const Dashboard = () => {
     data: null,
     action: null
   });
-
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      const result = await getUserBlogs();
-      setBlogs(result);
-    };
-    fetchBlogs();
-  }, []);
 
   const showConfirmation = (config) => {
     setModalConfig({
@@ -55,7 +58,8 @@ const Dashboard = () => {
     if (modalConfig.action === 'delete') {
       const success = await deleteBlog(modalConfig.data);
       if (success) {
-        setBlogs(blogs.filter(blog => blog.id !== modalConfig.data));
+        // Refresh the current page data after deletion
+        refreshData(pagination.current_page);
         toast.success('Blog post deleted successfully');
       } else {
         toast.error('Failed to delete blog post');
@@ -65,13 +69,13 @@ const Dashboard = () => {
     hideConfirmation();
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex justify-center items-center min-h-screen">
+  //       <LoadingSpinner />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -148,6 +152,13 @@ const Dashboard = () => {
             </Link>
           </div>
         )}
+        
+        <Pagination 
+          pagination={pagination} 
+          onPageChange={handlePageChange} 
+        />
+        
+        <PageInfo pagination={pagination} />
       </div>
 
       {modalConfig.show && (

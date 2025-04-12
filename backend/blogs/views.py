@@ -30,8 +30,10 @@ class GetUserBlogsView(APIView):
 
     def get(self, request, format=None):
         blogs = BlogPost.objects.filter(author=request.user)
-        serializer = BlogPostSerializer(blogs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # serializer = BlogPostSerializer(blogs, many=True)
+        paginator = CustomPageNumberPagination()
+        # return Response(serializer.data, status=status.HTTP_200_OK)
+        return paginator.generate_response(blogs, BlogPostSerializer, request)
 
 
 class CreateBlogView(APIView):

@@ -9,7 +9,7 @@ export const useBlog = () => {
     if (result.success) {
       return result.data;
     }
-    // Return a default pagination structure if the request fails
+    // Returns a default pagination structure if the request fails
     return { 
       results: [], 
       count: 0, 
@@ -20,9 +20,25 @@ export const useBlog = () => {
     };
   };
 
-  const getUserBlogs = async () => {  
-    const result = await api.get('/blogs/user/');
-    return result.success ? result.data : [];
+  // const getUserBlogs = async () => {  
+  //   const result = await api.get('/blogs/user/');
+  //   return result.success ? result.data : [];
+  // };
+
+  const getUserBlogs = async (page = 1) => {  
+    const result = await api.get(`/blogs/user/?page=${page}`);
+    if (result.success) {
+      return result.data;
+    }
+
+    return { 
+      results: [], 
+      count: 0, 
+      total_pages: 0,
+      current_page: page,
+      next: null, 
+      previous: null 
+    };
   };
 
   const getBlogBySlug = async (slug) => {
