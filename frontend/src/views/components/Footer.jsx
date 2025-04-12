@@ -38,6 +38,7 @@ const Footer = () => {
         
         <div className="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
           <p>© {currentYear} Blog App. All rights reserved.</p>
+          <p>Developed by <a href="https://www.linkedin.com/in/rafid-iit-du/">Rafid</a></p>
         </div>
       </div>
     </footer>

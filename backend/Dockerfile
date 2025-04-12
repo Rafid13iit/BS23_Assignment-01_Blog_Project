@@ -1,15 +1,20 @@
-FROM python:3.8.4 
+FROM python:3.10-slim
 
-WORKDIR /backend
+WORKDIR /app/backend
 
-ENV PYTHONUNBUFFERED 1 
-
+# Install dependencies
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install -r requirements.txt
-
+# Copy project
 COPY . .
 
-EXPOSE 8000
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DEBUG=False
 
-CMD ["python", "manage.py", "runserver"]
+# Run migrations and start server
+CMD python manage.py migrate && \
+    python manage.py collectstatic --no-input && \
+    gunicorn backend.wsgi:application --bind 0.0.0.0:8000

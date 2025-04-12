@@ -51,28 +51,17 @@ source venv/bin/activate  # On Windows, use: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables
-Create a `.env` file in the root directory and add the following:
-```
-SECRET_KEY=your_secret_key
-DEBUG=True
-EMAIL_HOST=your_email_host
-EMAIL_PORT=your_email_port
-EMAIL_HOST_USER=your_email
-EMAIL_HOST_PASSWORD=your_email_password
-```
-
-5. Run migrations
+4. Run migrations
 ```bash
 python manage.py migrate
 ```
 
-6. Create a superuser
+5. Create a superuser
 ```bash
 python manage.py createsuperuser
 ```
 
-7. Run the development server
+6. Run the development server
 ```bash
 python manage.py runserver
 ```
@@ -296,6 +285,40 @@ This API uses JSON Web Tokens (JWT) for authentication. To authenticate your req
    ```
 3. Refresh tokens when they expire using the `/users/token/refresh/` endpoint
 
+## Setting Up Celery
+
+For the planned email notification tasks:
+
+1. Install Redis (as the message broker)
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get install redis-server
+   
+   # macOS
+   brew install redis
+   
+   # Windows
+   # Download from https://github.com/microsoftarchive/redis/releases
+   ```
+
+2. Install Celery and Redis client
+   ```bash
+   pip install celery redis
+   ```
+
+3. Configure Celery in your project's settings
+
+4. Create a celery.py file in your project directory
+
+5. Run Celery worker
+   ```bash
+   celery -A backend worker -l info
+   ```
+
+6. Run Celery beat for periodic tasks
+   ```bash
+   celery -A backend beat -l info
+   ```
 
 ## Troubleshooting
 

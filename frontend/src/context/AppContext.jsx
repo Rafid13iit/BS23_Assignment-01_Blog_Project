@@ -12,6 +12,8 @@ export const AppContextProvider = (props) =>{
     const backendUrl = import.meta.env.VITE_BACKEND_URL
     const [isLoggedin, SetIsLoggedin] = useState(false)
     const [userData, SetUserData] = useState(null)
+    const [authInitialized, setAuthInitialized] = useState(false);
+
 
     const logout = () => {
         localStorage.removeItem('access_token');
@@ -77,12 +79,14 @@ export const AppContextProvider = (props) =>{
         const userData = localStorage.getItem('user_data');
         if (userData) {
             const parsedUserData = JSON.parse(userData);
-                    SetUserData(parsedUserData);
-                    SetIsLoggedin(true);
+            SetUserData(parsedUserData);
+            SetIsLoggedin(true);
+            setAuthInitialized(true);
         } else {
-            getAuthState();
+            getAuthState().finally(() => setAuthInitialized(true));
         }
     }, []);
+    
 
     const value = {
         backendUrl,
@@ -90,6 +94,7 @@ export const AppContextProvider = (props) =>{
         userData, SetUserData,
         getAuthState,
         logout,
+        authInitialized,
     }
     return (
         <AppContext.Provider value={value}>
