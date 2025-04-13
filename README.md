@@ -2,6 +2,14 @@
 
 A full-stack blog application with user authentication, content management, and interactive features.
 
+# 🚀 Live App
+
+You can check out the live version of the project here:
+
+🔗 [Live App Link](https://blog-app-21s5.onrender.com)
+
+> Hosted on: Render (Both Frontend & Backend)
+
 ## Overview
 
 This project is a modern blog platform built with a Django REST API backend and a React frontend. It enables users to create accounts, publish blog posts, and engage with content through comments and replies.
