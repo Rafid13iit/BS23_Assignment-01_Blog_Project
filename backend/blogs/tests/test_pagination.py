@@ -12,14 +12,14 @@ from collections import OrderedDict
 
 class CustomPaginationTestCase(APITestCase):
     def setUp(self):
-        # Create a test user
+        # Creating a test user
         self.user = CustomUser.objects.create_user(
             email='testuser@example.com',
             username='testuser',
             password='testpassword'
         )
         
-        # Create 20 blog posts
+        # Creating 20 blog posts
         for i in range(20):
             BlogPost.objects.create(
                 title=f'Test Post {i}',
@@ -45,12 +45,12 @@ class CustomPaginationTestCase(APITestCase):
         request = Request(request)
         queryset = BlogPost.objects.all().order_by('-published_date')
         
-        # Paginate the queryset
+        # Paginating the queryset
         page = self.paginator.paginate_queryset(queryset, request)
         serializer = BlogPostSerializer(page, many=True)
         response = self.paginator.get_paginated_response(serializer.data)
         
-        # Check response structure
+        # Checking response structure
         self.assertIn('count', response.data)
         self.assertIn('total_pages', response.data)
         self.assertIn('current_page', response.data)
@@ -58,7 +58,7 @@ class CustomPaginationTestCase(APITestCase):
         self.assertIn('previous', response.data)
         self.assertIn('results', response.data)
         
-        # Check counts
+        # Checking counts
         self.assertEqual(response.data['count'], 20)  # Total 20 blogs
         self.assertEqual(response.data['total_pages'], 4)  # 20 items with page_size=6 → 4 pages
         self.assertEqual(response.data['current_page'], 1)  # First page
@@ -69,15 +69,15 @@ class CustomPaginationTestCase(APITestCase):
         request = Request(request)
         queryset = BlogPost.objects.all().order_by('-published_date')
         
-        # Set custom page size
+        # Setting custom page size
         self.paginator.page_size = 10
         
-        # Paginate the queryset
+        # Paginating the queryset
         page = self.paginator.paginate_queryset(queryset, request)
         serializer = BlogPostSerializer(page, many=True)
         response = self.paginator.get_paginated_response(serializer.data)
         
-        # Check counts with new page size
+        # Checking counts with new page size
         self.assertEqual(response.data['count'], 20)  # Total 20 blogs
         self.assertEqual(response.data['total_pages'], 2)  # 20 items with page_size=10 → 2 pages
         self.assertEqual(len(response.data['results']), 10)  # 10 items per page
@@ -100,7 +100,7 @@ class CustomPaginationTestCase(APITestCase):
         
         response = self.paginator.generate_response(queryset, BlogPostSerializer, request)
         
-        # Check response structure
+        # Checking response structure
         self.assertIn('count', response.data)
         self.assertIn('total_pages', response.data)
         self.assertIn('current_page', response.data)
@@ -108,27 +108,27 @@ class CustomPaginationTestCase(APITestCase):
         self.assertIn('previous', response.data)
         self.assertIn('results', response.data)
         
-        # Check data count
+        # Checking data count
         self.assertEqual(len(response.data['results']), 6)  # 6 items per page
         
     def test_pagination_through_api(self):
         """Test pagination through the API endpoint"""
         url = reverse('blogs')
         
-        # Get first page
+        # Getting first page
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 20)
         self.assertEqual(len(response.data['results']), 6)
         self.assertEqual(response.data['current_page'], 1)
         
-        # Get second page
+        # Getting second page
         response = self.client.get(url + '?page=2')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 6)
         self.assertEqual(response.data['current_page'], 2)
         
-        # Get custom page size
+        # Getting custom page size
         response = self.client.get(url + '?page_size=10')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 10)

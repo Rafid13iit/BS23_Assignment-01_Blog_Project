@@ -18,7 +18,7 @@ class GetAllBlogsViewTest(APITestCase):
             password='testpassword'
         )
         
-        # Create some test blogs
+        # Creating some test blogs
         self.blog1 = BlogPost.objects.create(
             title="Test Blog 1",
             slug="test-blog-1",
@@ -49,11 +49,11 @@ class GetAllBlogsViewTest(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check that only published blogs are returned
+        # Checking that only published blogs are returned
         self.assertIn('results', response.data)
         self.assertEqual(len(response.data['results']), 2)
         
-        # Check that the draft blog is not included
+        # Checking that the draft blog is not included
         slugs = [blog['slug'] for blog in response.data['results']]
         self.assertIn('test-blog-1', slugs)
         self.assertIn('test-blog-2', slugs)
@@ -75,7 +75,7 @@ class GetUserBlogsViewTest(APITestCase):
             password='password2'
         )
         
-        # Create blogs for user1
+        # Creating blogs for user1
         self.blog1 = BlogPost.objects.create(
             title="User1 Blog 1",
             slug="user1-blog-1",
@@ -90,7 +90,7 @@ class GetUserBlogsViewTest(APITestCase):
             author=self.user1
         )
         
-        # Create a blog for user2
+        # Creating a blog for user2
         self.blog3 = BlogPost.objects.create(
             title="User2 Blog",
             slug="user2-blog",
@@ -101,13 +101,13 @@ class GetUserBlogsViewTest(APITestCase):
         self.url = reverse('user-blogs')
 
     def test_get_user_blogs_authenticated(self):
-        # Login as user1
+        # Logging in as user1
         self.client.force_authenticate(user=self.user1)
         
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
-        # Check that only user1's blogs are returned
+        # Checking that only user1's blogs are returned
         self.assertIn('results', response.data)
         self.assertEqual(len(response.data['results']), 2)
         
@@ -225,7 +225,7 @@ class DeleteBlogViewTest(APITestCase):
             password='password2'
         )
         
-        # Create a blog for user1
+        # Creating a blog for user1
         self.blog = BlogPost.objects.create(
             title="User1 Blog",
             slug="user1-blog",
@@ -286,7 +286,7 @@ class UpdateBlogViewTest(APITestCase):
             password='password2'
         )
         
-        # Create a blog for user1
+        # Creating a blog for user1
         self.blog = BlogPost.objects.create(
             title="Original Title",
             slug="original-title",
@@ -338,7 +338,7 @@ class CommentViewTest(APITestCase):
             author=self.user
         )
         
-        # Create some comments
+        # Creating some comments
         self.comment1 = Comment.objects.create(
             post=self.blog,
             user=self.user,
@@ -353,7 +353,7 @@ class CommentViewTest(APITestCase):
             reply=None
         )
         
-        # Create a reply
+        # Creating a reply
         self.reply = Comment.objects.create(
             post=self.blog,
             user=self.user,
@@ -372,15 +372,15 @@ class CommentViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # Only top-level comments
         
-        # Check that replies are nested in the parent comment
+        # Checking that replies are nested in the parent comment
         comment_ids = [comment['id'] for comment in response.data]
         self.assertIn(self.comment1.id, comment_ids)
         self.assertIn(self.comment2.id, comment_ids)
         
-        # Find comment1 in the response data
+        # Finding comment1 in the response data
         comment1_data = next(c for c in response.data if c['id'] == self.comment1.id)
         
-        # Check that reply is nested in comment1
+        # Checking that reply is nested in comment1
         self.assertEqual(len(comment1_data['replies']), 1)
         self.assertEqual(comment1_data['replies'][0]['id'], self.reply.id)
 
@@ -396,7 +396,7 @@ class CommentViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Comment.objects.count(), 4)  # 3 existing + 1 new
         
-        # Check the new comment
+        # Checking the new comment
         new_comment = Comment.objects.latest('created_at')
         self.assertEqual(new_comment.comment, 'New test comment')
         self.assertEqual(new_comment.user, self.user)
@@ -431,7 +431,7 @@ class ReplyViewTest(APITestCase):
             author=self.user
         )
         
-        # Create a comment
+        # Creating a comment
         self.comment = Comment.objects.create(
             post=self.blog,
             user=self.user,
@@ -439,7 +439,7 @@ class ReplyViewTest(APITestCase):
             reply=None
         )
         
-        # Create some replies
+        # Creating some replies
         self.reply1 = Comment.objects.create(
             post=self.blog,
             user=self.user,
@@ -481,7 +481,7 @@ class ReplyViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Comment.objects.count(), 4)  # 3 existing + 1 new
         
-        # Check the new reply
+        # Checking the new reply
         new_reply = Comment.objects.latest('created_at')
         self.assertEqual(new_reply.comment, 'New test reply')
         self.assertEqual(new_reply.user, self.user)
@@ -523,9 +523,11 @@ class ContactFormViewTest(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(response.data['message'], 'Email sent successfully!')
             
-            # Check that send_mail was called with correct parameters
+            # Checking that send_mail was called with correct parameters
             mock_send_mail.assert_called_once()
             args, kwargs = mock_send_mail.call_args
-            self.assertEqual(kwargs['subject'], 'Test Subject')
-            self.assertIn('From: Test User <test@example.com>', kwargs['message'])
-            self.assertIn('This is a test message', kwargs['message'])
+            self.assertEqual(args[0], 'Test Subject')
+            self.assertIn('From: Test User <test@example.com>', args[1])
+            self.assertIn('This is a test message', args[1])
+            self.assertEqual(args[2], 'test@example.com')
+            self.assertEqual(args[3], ['rafidssrr.6767@gmail.com'])

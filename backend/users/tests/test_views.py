@@ -38,7 +38,7 @@ class RegisterViewTest(APITestCase):
         self.assertEqual(user.email, 'testuser@example.com')
         self.assertFalse(user.is_email_verified)
         
-        # Check that OTP email was sent
+        # Checking that OTP email was sent
         mock_send_otp.assert_called_once_with('testuser@example.com')
 
     def test_register_user_passwords_not_matching(self):
@@ -65,7 +65,7 @@ class VerifyOTPTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
         
-        # Create a user with an OTP
+        # Creating a user with an OTP
         self.user = CustomUser.objects.create_user(
             username='testuser',
             email='testuser@example.com',
@@ -91,7 +91,7 @@ class VerifyOTPTest(APITestCase):
         self.assertEqual(response.data['status'], '200')
         self.assertEqual(response.data['message'], 'User verified successfully')
         
-        # Check that user is now verified
+        # Checking that user is now verified
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_email_verified)
 
@@ -111,7 +111,7 @@ class VerifyOTPTest(APITestCase):
         self.assertEqual(response.data['status'], '400')
         self.assertEqual(response.data['message'], 'User verification failed')
         
-        # Check that user is still not verified
+        # Checking that user is still not verified
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_email_verified)
 
@@ -120,7 +120,7 @@ class LoginViewTest(APITestCase):
     def setUp(self):
         self.client = APIClient()
         
-        # Create a verified user
+        # Creating a verified user
         self.verified_user = CustomUser.objects.create_user(
             username='verifieduser',
             email='verified@example.com',
@@ -129,7 +129,7 @@ class LoginViewTest(APITestCase):
         self.verified_user.is_email_verified = True
         self.verified_user.save()
         
-        # Create an unverified user
+        # Creating an unverified user
         self.unverified_user = CustomUser.objects.create_user(
             username='unverifieduser',
             email='unverified@example.com',

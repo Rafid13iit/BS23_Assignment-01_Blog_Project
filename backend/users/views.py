@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import CustomUser
-from .serializers import UserSerializer, VerifyUserSerializer, UserLoginSerializer, UserDashboardSerializer
+from .serializers import UserSerializer, VerifyUserSerializer, UserLoginSerializer, UserDashboardSerializer, UserChangePasswordSerializer
 from .utils import send_otp_via_email
 from rest_framework_simplejwt.tokens import RefreshToken
 
