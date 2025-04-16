@@ -7,7 +7,7 @@ from users.models import CustomUser
 class BlogPostModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        # Create a test user
+        # Creating a test user
         test_user = CustomUser.objects.create_user(
             email='testuser@example.com',
             username='testuser',
