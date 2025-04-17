@@ -1,13 +1,32 @@
-FROM node:16.14.0
+# Use Node.js as base image
+FROM node:18-alpine
 
-WORKDIR /frontend
+# Set working directory
+WORKDIR /app
 
-COPY package.json . 
+# Copy package.json and package-lock.json first to leverage Docker cache
+COPY frontend/package*.json ./
 
-RUN npm install 
+# Install dependencies
+RUN npm install
 
-COPY . . 
+# Copy the rest of the frontend code
+COPY frontend/ ./
 
-EXPOSE 5173
+# Build the app
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
+# Use nginx to serve the built app
+FROM nginx:alpine
+
+# Copy built files from the build stage to nginx serve directory
+COPY --from=0 /app/build /usr/share/nginx/html
+
+# Copy nginx configuration if needed
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
