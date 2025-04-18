@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-// Optional: You can move this to your App.jsx if you initialize ToastContainer there.
 import { ToastContainer } from 'react-toastify';
+import { useApi } from '../../hooks/useApi';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +13,7 @@ const Contact = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const api = useApi(); // Initialize the useApi hook
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,22 +25,12 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('https://blogapp-yz4c.onrender.com/contact/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData?.error || 'Something went wrong.';
-        throw new Error(errorMessage);
+      // Correct API call using the useApi hook
+      const response = await api.post('/contact/', formData);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Something went wrong.');
       }
-
-      const data = await response.json();
-      console.log('Response:', data);
 
       toast.success('✅ Thank you! Your message has been sent.');
       setFormData({ name: '', email: '', subject: '', message: '' });
